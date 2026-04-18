@@ -48,62 +48,28 @@ This document describes the technical implementation of the portfolio website bu
 
 ## Features
 
-### 1. Inspirational Quotes API
-- Fetches a random quote from `https://api.quotable.io/quotes/random`
-- If that request fails, falls back to `https://api.adviceslip.com/advice`
-- Shows a loading state while fetching and a user-friendly error if both APIs fail
-- A refresh button fetches a new quote without reloading the page
+### API Integration
+**Inspirational Quotes** — Fetches a random quote from `api.quotable.io` with a fallback to `api.adviceslip.com`. Shows a loading state, error message, and a refresh button.
 
-### 2. GitHub Repositories API
-- Fetches the 6 most recently updated public repositories from `https://api.github.com/users/MohammedAlroomi/repos`
-- Each card displays the repo name (linked), description, language with color dot, star count, fork count, and last updated date
-- The API call is **lazy-loaded** — it only fires when the GitHub section scrolls into view, avoiding unnecessary network requests
-- API data is sanitized with `escapeHTML()` before being inserted into the DOM
+**GitHub Repositories** — Fetches the 6 most recently updated public repos from the GitHub API and renders them as cards showing name, description, language, stars, forks, and last updated date. Lazy-loaded — the request only fires when the section scrolls into view.
 
-### 3. Project Filter, Skill Level, and Sort
-- Three controls work together through a shared `projectState` object:
-  - **Category filter** — All / Data Science / AI / Database
-  - **Skill level filter** — All Levels / Beginner / Intermediate / Advanced
-  - **Sort select** — Default / Name A→Z / Name Z→A / Date Oldest / Date Newest
-- A card is visible only if it matches both the active category and the active skill level
-- Sorting re-orders visible cards in the DOM without a full re-render
-- If no cards match, an empty-state message is shown
+### Complex Logic
+**Project Filter + Sort** — Category filter (All / Data Science / AI / Database) and a sort dropdown (name or date, ascending or descending) share a unified state object and apply together on every interaction.
 
-### 4. Contact Form Validation
-- Multi-step validation runs on submit and on blur:
-  - Name: required
-  - Email: required + regex format check
-  - Message: required + minimum 10 characters
-- Each field shows its own inline error message
-- On successful submission, a success message is shown for 5 seconds and the form resets
+**Skill Level Filter** — A second filter dimension (Beginner / Intermediate / Advanced) works simultaneously with the category filter. A card is only visible if it matches both active filters.
 
-### 5. Site Timer
-- Starts counting when the page loads
-- Updates every second using `setInterval`
-- Displays elapsed time in a human-readable format (e.g. `0s`, `1m 04s`)
-- Visible in the hero section on desktop
+**Contact Form Validation** — Validates on submit and on blur. Name is required, email must pass a format check, and message must be at least 10 characters. Each field shows its own inline error message.
 
-### 6. Login / Logout Simulation
-- A Login button in the navbar triggers the logged-in state
-- On login, the visitor's typed name is read from the greeting input (or defaults to "Visitor")
-- State is saved to `sessionStorage` so it persists on page refresh within the same tab
-- When logged in:
-  - A welcome bar appears below the navbar
-  - A private panel is revealed below the About section
-  - The navbar button changes to "Logout"
-- Logging out reverses all of the above and clears sessionStorage
+**Site Timer** — Counts elapsed time from page load, displayed in the hero section and updated every second.
 
-### 7. Dark / Light Theme Toggle
-- Toggled by the ☀️ button in the navbar
-- Applies a CSS class (`dark-theme` or `light-theme`) to the body element
-- All colors are defined as CSS custom properties in `:root`, so the entire site updates instantly
-- Preference is saved to `localStorage` and restored on every page load
+### State Management
+**Dark / Light Theme Toggle** — Toggles between dark and light themes using CSS custom properties. Preference is saved to `localStorage` and restored on every page load.
 
-### 8. Personalised Greeting
-- Visitor types their name into an input in the hero section
-- The greeting updates in real time as they type
-- Name is saved to `localStorage` and pre-filled on return visits
-- A clear button removes the saved name
+**Visitor Name** — Visitor types their name in the hero input and the greeting updates in real time. Name is saved to `localStorage` and restored on return visits.
+
+**Login / Logout Simulation** — A navbar button toggles a logged-in state saved in `sessionStorage`. On login, a welcome bar appears and a private panel is revealed. State persists across page refreshes within the same tab.
+
+**Show / Hide Sections** — The private panel is hidden by default and only revealed when the user is logged in.
 
 ---
 
