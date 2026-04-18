@@ -3,7 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Mohammed Alroomi — Software Engineering student at KFUPM. Portfolio of Data Science, AI, and database projects." />
+
   <title>Mohammed Alroomi | Portfolio</title>
+
+  <!-- Performance: DNS prefetch for external APIs used in this page -->
+  <link rel="dns-prefetch" href="//api.github.com" />
+  <link rel="dns-prefetch" href="//api.quotable.io" />
+  <link rel="dns-prefetch" href="//api.adviceslip.com" />
+
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,16 +26,30 @@
       <li><a href="#about">About</a></li>
       <li><a href="#projects">Projects</a></li>
       <li><a href="#experience">Experience</a></li>
+      <li><a href="#github">GitHub</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
     <!-- Click to switch between dark and light mode -->
     <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Switch between dark and light mode">
       <span class="theme-icon">☀️</span>
     </button>
+    <!-- STATE MANAGEMENT: Login / Logout simulation — persists in sessionStorage -->
+    <button class="login-btn" id="loginBtn" aria-label="Simulate login" title="Click to simulate login state management">
+      <span id="loginIcon">🔓</span>
+      <span class="login-label-text" id="loginLabel">Login</span>
+    </button>
     <button class="hamburger" id="hamburger" aria-label="Open menu">
       <span></span><span></span><span></span>
     </button>
   </nav>
+
+  <!-- STATE MANAGEMENT: Welcome bar — shown only when the user is "logged in" -->
+  <div class="user-welcome-bar" id="userWelcomeBar" hidden>
+    <div class="welcome-bar-inner">
+      <span>👋 Welcome back, <strong id="welcomeName">Visitor</strong>! You're viewing the extended portfolio.</span>
+      <button class="welcome-bar-dismiss" id="welcomeBarDismiss" aria-label="Log out">Logout ×</button>
+    </div>
+  </div>
 
   <!-- ========== HERO ========== -->
   <section class="hero" id="hero">
@@ -60,19 +82,28 @@
         <a href="#projects" class="btn btn-primary">View My Work</a>
         <a href="#contact" class="btn btn-outline">Get In Touch</a>
       </div>
-      <p class="hero-hint">↑ Type your name to personalise the greeting · Use <span class="accent">☀️</span> in the nav to switch themes</p>
+
+      <!-- COMPLEX LOGIC / STATE: Site timer — counts how long the visitor has been on the page -->
+      <div class="site-timer-row" id="siteTimerRow">
+        <span class="timer-icon">⏱</span>
+        <span class="timer-label">Time on site:</span>
+        <span class="timer-display" id="timerDisplay">0s</span>
+      </div>
+
+      <p class="hero-hint">↑ Type your name · Use <span class="accent">☀️</span> to switch themes · Press <span class="accent">Login</span> to demo state management</p>
     </div>
 
-    <!-- FEATURE 3: Advice API Widget
-         Fetches a random piece of advice from api.adviceslip.com
-         Shows a loading state, error message if fetch fails, and a refresh button. -->
-    <div class="advice-widget" id="adviceWidget">
-      <div class="advice-header">
-        <span class="advice-label">💡 Advice for you</span>
-        <button class="advice-refresh" id="adviceRefresh" aria-label="Get new advice" title="Get new advice">↺</button>
+    <!-- API INTEGRATION: Inspirational Quotes widget
+         Fetches from api.quotable.io with fallback to api.adviceslip.com
+         Shows loading state, error handling, and author attribution.       -->
+    <div class="quote-widget" id="quoteWidget">
+      <div class="quote-header">
+        <span class="quote-label">💬 Daily Inspiration</span>
+        <button class="quote-refresh" id="quoteRefresh" aria-label="Get new quote" title="Fetch a new inspirational quote">↺</button>
       </div>
-      <p class="advice-text" id="adviceText">Loading advice…</p>
-      <p class="advice-error" id="adviceError" hidden>⚠️ Could not load advice. Check your connection and try refreshing.</p>
+      <p class="quote-text" id="quoteText">Loading…</p>
+      <p class="quote-author" id="quoteAuthor"></p>
+      <p class="quote-error" id="quoteError" hidden>⚠️ Could not load quote. Check your connection and try again.</p>
     </div>
 
     <div class="hero-terminal">
@@ -157,29 +188,84 @@
     </div>
   </section>
 
+  <!-- STATE MANAGEMENT: Private panel — only shown when simulated login is active -->
+  <div class="private-panel" id="privateSection" hidden>
+    <div class="container">
+      <div class="private-inner">
+        <span class="private-lock">🔒</span>
+        <div class="private-text">
+          <h4>Extended View Active</h4>
+          <p>Thanks for logging in. This panel demonstrates persistent state management via sessionStorage. Feel free to reach out directly.</p>
+        </div>
+        <a href="#contact" class="btn btn-primary">Get In Touch →</a>
+      </div>
+    </div>
+  </div>
+
   <!-- ========== PROJECTS ========== -->
   <section class="section section-alt" id="projects">
     <div class="container">
       <h2 class="section-title">My <span class="accent">Projects</span></h2>
       <p class="section-sub">Academic projects spanning data science, AI, and database systems.</p>
 
-      <!-- FEATURE 2: Project Filter — click a category to show only matching projects -->
+      <!-- COMPLEX LOGIC: Filter + Skill Level + Sort — all three work together -->
       <div class="filter-bar">
-        <span class="filter-hint">Filter by category:</span>
-        <div class="filter-buttons" role="group" aria-label="Filter projects by category">
-          <button class="filter-btn active" data-filter="all">All</button>
-          <button class="filter-btn" data-filter="data-science">Data Science</button>
-          <button class="filter-btn" data-filter="ai">AI</button>
-          <button class="filter-btn" data-filter="database">Database</button>
+
+        <!-- Row 1: Category filter -->
+        <div class="filter-row">
+          <span class="filter-hint">Category:</span>
+          <div class="filter-buttons" role="group" aria-label="Filter projects by category">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="data-science">Data Science</button>
+            <button class="filter-btn" data-filter="ai">AI</button>
+            <button class="filter-btn" data-filter="database">Database</button>
+          </div>
         </div>
+
+        <!-- Row 2: Skill level — shows different projects by difficulty -->
+        <div class="filter-row">
+          <span class="filter-hint">Skill level:</span>
+          <div class="filter-buttons" role="group" aria-label="Filter by skill level">
+            <button class="skill-btn active" data-skill="all">All Levels</button>
+            <button class="skill-btn" data-skill="beginner">Beginner</button>
+            <button class="skill-btn" data-skill="intermediate">Intermediate</button>
+            <button class="skill-btn" data-skill="advanced">Advanced</button>
+          </div>
+        </div>
+
+        <!-- Row 3: Sort select -->
+        <div class="filter-row">
+          <span class="filter-hint">Sort by:</span>
+          <select class="sort-select" id="sortSelect" aria-label="Sort projects">
+            <option value="default">Default Order</option>
+            <option value="name-asc">Name A → Z</option>
+            <option value="name-desc">Name Z → A</option>
+            <option value="date-asc">Date (Oldest First)</option>
+            <option value="date-desc">Date (Newest First)</option>
+          </select>
+        </div>
+
       </div>
-      <p class="empty-state" id="emptyState" hidden>No projects found for this category.</p>
+
+      <p class="empty-state" id="emptyState" hidden>No projects match the selected filters.</p>
 
       <div class="projects-grid" id="projectsGrid">
 
-        <div class="project-card" data-category="data-science">
+        <!--
+          data-category : used by category filter buttons
+          data-level    : used by skill-level buttons (beginner / intermediate / advanced)
+          data-date     : used by date sort (YYYY-MM format)
+          data-name     : used by name sort
+        -->
+        <div class="project-card"
+             data-category="data-science"
+             data-level="intermediate"
+             data-date="2024-01"
+             data-name="Predictive Analytics Model">
           <div class="project-image">
+            <!-- Performance: lazy load + async decode for below-fold images -->
             <img src="assets/images/Project1.webp" alt="Data Science Project"
+                 loading="lazy" decoding="async"
                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
             <div class="project-img-fallback"><span>📊</span></div>
           </div>
@@ -194,15 +280,19 @@
             <p class="project-desc">
               Developed as part of ISE291 (Introduction to Data Science), this project covered
               the full data science lifecycle — data cleaning, exploratory analysis, feature engineering,
-              and training predictive models using regression and classification techniques to extract
-              meaningful insights from real-world datasets.
+              and training predictive models using regression and classification techniques.
             </p>
           </div>
         </div>
 
-        <div class="project-card" data-category="ai">
+        <div class="project-card"
+             data-category="ai"
+             data-level="advanced"
+             data-date="2024-09"
+             data-name="AI Classification System">
           <div class="project-image">
             <img src="assets/images/Project2.jpeg" alt="AI Project"
+                 loading="lazy" decoding="async"
                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
             <div class="project-img-fallback"><span>🤖</span></div>
           </div>
@@ -217,15 +307,19 @@
             <p class="project-desc">
               Built as part of COE292 (Introduction to Artificial Intelligence), our team designed
               and implemented an AI classification pipeline — covering model architecture selection,
-              training, hyperparameter tuning, and performance evaluation. Iteratively improved accuracy
-              through experimentation and analysis.
+              training, hyperparameter tuning, and performance evaluation.
             </p>
           </div>
         </div>
 
-        <div class="project-card" data-category="database">
+        <div class="project-card"
+             data-category="database"
+             data-level="beginner"
+             data-date="2023-12"
+             data-name="Relational Database System">
           <div class="project-image">
             <img src="assets/images/Project3.jpeg" alt="Database Systems Project"
+                 loading="lazy" decoding="async"
                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
             <div class="project-img-fallback"><span>🗄️</span></div>
           </div>
@@ -239,9 +333,8 @@
             <h3 class="project-title">Relational Database System</h3>
             <p class="project-desc">
               Designed and built a fully normalized relational database for ICS321 (Database Systems)
-              using MySQL Workbench. The project spanned ER diagram modeling, schema normalization,
-              complex SQL queries, stored procedures, triggers, and performance optimization
-              through proper indexing strategies.
+              using MySQL Workbench. Spanned ER diagram modeling, schema normalization, complex SQL
+              queries, stored procedures, triggers, and performance optimization through indexing.
             </p>
           </div>
         </div>
@@ -353,12 +446,51 @@
     </div>
   </section>
 
+  <!-- ========== GITHUB REPOSITORIES ========== -->
+  <!--
+    API INTEGRATION: Fetches live data from api.github.com/users/MohammedAlroomi/repos
+    - Lazy-loaded: only triggers the API call when section enters the viewport
+    - Handles loading state, API errors, and empty repos gracefully
+    - Cards animate in with the existing fade-in IntersectionObserver
+  -->
+  <section class="section section-alt" id="github">
+    <div class="container">
+      <h2 class="section-title">GitHub <span class="accent">Repositories</span></h2>
+      <p class="section-sub">
+        Live from the GitHub API — my latest public repositories, updated automatically.
+      </p>
+
+      <!-- Populated dynamically by JS (fetchGitHubRepos) -->
+      <div class="github-repos-grid" id="githubReposGrid">
+        <div class="github-loading" id="githubLoading">
+          <div class="loading-dots">
+            <span></span><span></span><span></span>
+          </div>
+          <span>Fetching repositories from GitHub…</span>
+        </div>
+      </div>
+
+      <!-- Shown if the API call fails -->
+      <p class="github-error" id="githubError" hidden>
+        ⚠️ Could not load repositories. Check your connection or
+        <a href="https://github.com/MohammedAlroomi" target="_blank" rel="noopener">visit GitHub directly →</a>
+      </p>
+
+      <!-- Shown after repos load successfully -->
+      <div class="github-view-all" id="githubFooterLink" hidden>
+        <a href="https://github.com/MohammedAlroomi" target="_blank" rel="noopener" class="btn btn-outline">
+          View All on GitHub ↗
+        </a>
+      </div>
+    </div>
+  </section>
+
   <!-- ========== CONTACT ========== -->
-  <section class="section section-alt" id="contact">
+  <section class="section" id="contact">
     <div class="container">
       <h2 class="section-title">Get In <span class="accent">Touch</span></h2>
       <p class="section-sub">Have a project in mind or just want to connect? Send me a message.</p>
-      <p class="form-guide">Fill in your name, email, and message below — all fields are required before submitting.</p>
+      <p class="form-guide">Fill in your name, email, and message — all fields are required before submitting.</p>
       <div class="contact-wrapper">
         <form class="contact-form" id="contactForm" novalidate>
           <div class="form-group">
@@ -412,9 +544,10 @@
   <!-- ========== FOOTER ========== -->
   <footer class="footer">
     <p>© 2026 Mohammed Alroomi · KFUPM · SWE 363</p>
-    <p class="footer-sub">Built with HTML, CSS &amp; JavaScript</p>
+    <p class="footer-sub">Built with HTML, CSS &amp; JavaScript · Assignment 3</p>
   </footer>
 
-  <script src="js/script.js"></script>
+  <!-- Performance: defer delays execution until HTML is parsed — non-blocking -->
+  <script src="js/script.js" defer></script>
 </body>
 </html>
